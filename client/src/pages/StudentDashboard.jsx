@@ -31,15 +31,15 @@ import { Modal } from '../components/common/Modal';
 import { Badge } from '../components/common/Badge';
 import { useToast } from '../context/ToastContext';
 import { useAuth } from '../context/AuthContext';
-import { api } from '../services/api';
+import { api, getCachedData } from '../services/api';
 
 export const StudentDashboard = () => {
   const navigate = useNavigate();
   const { currentUser } = useAuth();
   const { addToast } = useToast();
 
-  const [loading, setLoading] = useState(true);
-  const [data, setData] = useState(null);
+  const [data, setData] = useState(() => getCachedData('student_dashboard_summary_me') || null);
+  const [loading, setLoading] = useState(() => !getCachedData('student_dashboard_summary_me'));
 
   // Upload modal for document requests
   const [showDocUploadModal, setShowDocUploadModal] = useState(false);
@@ -61,7 +61,9 @@ export const StudentDashboard = () => {
 
   const fetchDashboardData = useCallback(async () => {
     try {
-      setLoading(true);
+      if (!getCachedData('student_dashboard_summary_me')) {
+        setLoading(true);
+      }
       const res = await api.students.getDashboardSummary();
       if (res.success) {
         setData(res);
@@ -221,6 +223,50 @@ export const StudentDashboard = () => {
         return <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-neutral-200 text-neutral-800 uppercase tracking-wider">PENDING</span>;
     }
   };
+
+  // If initial load and no cached data is available yet, render an elegant skeleton UI instead of dummy defaults
+  if (loading && !data) {
+    return (
+      <DashboardShell>
+        <TopBar title="Student Development Dashboard" />
+        <div className="space-y-6 animate-pulse">
+          {/* Top 4 Metrics Cards Skeleton */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5">
+            {[1, 2, 3, 4].map((i) => (
+              <div key={i} className="bg-white rounded-3xl p-6 border border-brand-gray-light/60 h-44 flex flex-col justify-between">
+                <div className="space-y-2.5">
+                  <div className="h-3.5 w-28 bg-brand-surface rounded-full" />
+                  <div className="h-8 w-24 bg-brand-surface rounded-xl" />
+                </div>
+                <div className="h-4 w-full bg-brand-surface rounded-full" />
+              </div>
+            ))}
+          </div>
+
+          {/* Assigned Faculty Mentor Card Skeleton */}
+          <div className="bg-white rounded-3xl p-6 sm:p-8 border border-brand-gray-light/60 h-36 flex items-center gap-5">
+            <div className="w-16 h-16 rounded-2xl bg-brand-surface" />
+            <div className="space-y-2 flex-1">
+              <div className="h-5 w-44 bg-brand-surface rounded-lg" />
+              <div className="h-3.5 w-64 bg-brand-surface rounded-full" />
+            </div>
+          </div>
+
+          {/* Grid sections Skeleton */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <div className="bg-white rounded-3xl p-6 border border-brand-gray-light/60 h-72 space-y-4">
+              <div className="h-4 w-40 bg-brand-surface rounded-full" />
+              <div className="h-48 w-full bg-brand-surface rounded-2xl" />
+            </div>
+            <div className="bg-white rounded-3xl p-6 border border-brand-gray-light/60 h-72 space-y-4">
+              <div className="h-4 w-40 bg-brand-surface rounded-full" />
+              <div className="h-48 w-full bg-brand-surface rounded-2xl" />
+            </div>
+          </div>
+        </div>
+      </DashboardShell>
+    );
+  }
 
   return (
     <DashboardShell>

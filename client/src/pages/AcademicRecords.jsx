@@ -24,7 +24,7 @@ import { Modal } from '../components/common/Modal';
 import { Badge } from '../components/common/Badge';
 import { useToast } from '../context/ToastContext';
 import { useAuth } from '../context/AuthContext';
-import { api } from '../services/api';
+import { api, getCachedData, setCachedData } from '../services/api';
 
 const DEFAULT_SUBJECTS = [
   { code: 'CS301', name: 'Data Structures & Algorithms', credits: 4, internalMarks: 26, externalMarks: 64, totalMarks: 90, maxMarks: 100, grade: 'A+', gradePoints: 9, backlog: false, remarks: '' },
@@ -41,9 +41,12 @@ export const AcademicRecords = () => {
   const [searchParams, setSearchParams] = useSearchParams();
   const initialStudentId = searchParams.get('studentId') || '';
 
-  const [loading, setLoading] = useState(true);
-  const [records, setRecords] = useState([]);
-  const [summary, setSummary] = useState({ cgpa: 0, totalSemesters: 0, currentSemester: 1 });
+  const cacheKey = 'academic_records_' + (initialStudentId || 'me');
+  const cachedAcademics = getCachedData(cacheKey);
+
+  const [loading, setLoading] = useState(() => !cachedAcademics);
+  const [records, setRecords] = useState(() => cachedAcademics?.records || []);
+  const [summary, setSummary] = useState(() => cachedAcademics?.summary || { cgpa: 0, totalSemesters: 0, currentSemester: 1 });
   const [expandedSemesters, setExpandedSemesters] = useState({});
 
   // Mentor Student Selector State
@@ -107,13 +110,17 @@ export const AcademicRecords = () => {
       setLoading(false);
       return;
     }
-    try {
+    const queryTarget = currentUser?.role === 'MENTOR' ? selectedStudentId : '';
+    const activeCacheKey = 'academic_records_' + (queryTarget || 'me');
+    if (!getCachedData(activeCacheKey)) {
       setLoading(true);
-      const queryTarget = currentUser?.role === 'MENTOR' ? selectedStudentId : '';
+    }
+    try {
       const res = await api.academics.getRecords(queryTarget);
       if (res.success) {
         setRecords(res.records || []);
         setSummary(res.summary || { cgpa: 0, totalSemesters: 0, currentSemester: 1 });
+        setCachedData(activeCacheKey, res);
         // Auto-expand all semesters
         const exp = {};
         (res.records || []).forEach((r) => {
@@ -467,8 +474,18 @@ export const AcademicRecords = () => {
         </section>
 
         {/* Chronological Semester Cards */}
-        {loading ? (
-          <p className="text-xs text-brand-gray py-12 text-center">Loading semester academic records from MongoDB...</p>
+        {loading && records.length === 0 ? (
+          <div className="space-y-4 animate-pulse">
+            {[1, 2].map((i) => (
+              <div key={i} className="bg-white rounded-3xl p-6 border border-brand-gray-light/60 h-32 flex items-center justify-between">
+                <div className="space-y-2">
+                  <div className="h-5 w-36 bg-brand-surface rounded-lg" />
+                  <div className="h-3.5 w-48 bg-brand-surface rounded-full" />
+                </div>
+                <div className="h-8 w-24 bg-brand-surface rounded-xl" />
+              </div>
+            ))}
+          </div>
         ) : records.length === 0 ? (
           <div className="bg-white rounded-3xl p-12 text-center border border-brand-gray-light/60 space-y-3">
             <BookOpen className="w-10 h-10 text-brand-gray mx-auto" />

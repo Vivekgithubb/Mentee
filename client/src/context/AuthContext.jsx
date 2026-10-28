@@ -1,5 +1,13 @@
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
-import { api, setStoredToken, clearStoredToken } from '../services/api';
+import {
+  api,
+  setStoredToken,
+  clearStoredToken,
+  getStoredToken,
+  getStoredUser,
+  setStoredUser,
+  clearStoredUser
+} from '../services/api';
 
 const AuthContext = createContext(null);
 
@@ -32,26 +40,42 @@ const purgeLegacyInsecureStorage = () => {
 };
 
 export const AuthProvider = ({ children }) => {
-  const [currentUser, setCurrentUser] = useState(null);
-  const [loading, setLoading] = useState(true);
+  // Synchronously initialize user identity from persistent storage so F5/refresh never kicks to /login
+  const [currentUser, setCurrentUser] = useState(() => getStoredUser());
+  const [loading, setLoading] = useState(() => !getStoredUser());
 
-  // Restore session via GET /api/auth/me (supports Authorization Bearer + HttpOnly cookies)
+  // Restore & re-validate session via GET /api/auth/me (supports Authorization Bearer + HttpOnly cookies)
   const checkAuthStatus = useCallback(async () => {
     // 1. Purge legacy insecure storage keys on application startup
     purgeLegacyInsecureStorage();
 
+    const token = getStoredToken();
+    if (!token && !getStoredUser()) {
+      clearStoredToken();
+      clearStoredUser();
+      setCurrentUser(null);
+      setLoading(false);
+      return;
+    }
+
     try {
       const res = await api.auth.getMe();
       if (res.success && res.user) {
+        setStoredUser(res.user);
         setCurrentUser(res.user);
       } else {
         clearStoredToken();
+        clearStoredUser();
         setCurrentUser(null);
       }
     } catch (err) {
-      // Session expired or no valid credentials
-      clearStoredToken();
-      setCurrentUser(null);
+      const msg = String(err?.message || '');
+      // Only clear session if explicitly unauthenticated (401 / expired session)
+      if (msg.includes('401') || msg.includes('Not authenticated') || msg.includes('Session expired')) {
+        clearStoredToken();
+        clearStoredUser();
+        setCurrentUser(null);
+      }
     } finally {
       setLoading(false);
     }
@@ -64,8 +88,8 @@ export const AuthProvider = ({ children }) => {
   const login = async (email, password) => {
     const res = await api.auth.login(email, password);
     if (res.success && res.user) {
-      // Clear any legacy keys that might have been created
       purgeLegacyInsecureStorage();
+      setStoredUser(res.user);
       setCurrentUser(res.user);
       return res.user;
     }
@@ -76,6 +100,7 @@ export const AuthProvider = ({ children }) => {
     const res = await api.auth.register(userData);
     if (res.success && res.user) {
       purgeLegacyInsecureStorage();
+      setStoredUser(res.user);
       setCurrentUser(res.user);
       return res.user;
     }
@@ -89,6 +114,7 @@ export const AuthProvider = ({ children }) => {
       console.warn('Logout notification error:', e);
     } finally {
       clearStoredToken();
+      clearStoredUser();
       purgeLegacyInsecureStorage();
       setCurrentUser(null);
     }

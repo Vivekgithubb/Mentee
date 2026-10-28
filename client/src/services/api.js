@@ -5,6 +5,7 @@
  */
 
 const TOKEN_KEY = 'mentee_auth_token';
+const USER_KEY = 'mentee_user_session';
 
 export const getStoredToken = () => {
   try {
@@ -27,14 +28,57 @@ export const setStoredToken = (token) => {
   }
 };
 
+export const getStoredUser = () => {
+  try {
+    if (typeof window === 'undefined') return null;
+    const raw = localStorage.getItem(USER_KEY) || sessionStorage.getItem(USER_KEY);
+    return raw ? JSON.parse(raw) : null;
+  } catch {
+    return null;
+  }
+};
+
+export const setStoredUser = (user) => {
+  try {
+    if (typeof window === 'undefined') return;
+    if (user) {
+      const serialized = JSON.stringify(user);
+      localStorage.setItem(USER_KEY, serialized);
+      sessionStorage.setItem(USER_KEY, serialized);
+    }
+  } catch (err) {
+    console.warn('Unable to persist user session:', err);
+  }
+};
+
+export const clearStoredUser = () => {
+  try {
+    if (typeof window === 'undefined') return;
+    sessionStorage.removeItem(USER_KEY);
+    localStorage.removeItem(USER_KEY);
+  } catch (err) {
+    console.warn('Unable to clear user session:', err);
+  }
+};
+
 export const clearStoredToken = () => {
   try {
     if (typeof window === 'undefined') return;
     sessionStorage.removeItem(TOKEN_KEY);
     localStorage.removeItem(TOKEN_KEY);
+    clearStoredUser();
   } catch (err) {
     console.warn('Unable to clear auth token:', err);
   }
+};
+
+// Global in-memory data cache for instant 0ms tab navigation
+const memoryCache = new Map();
+export const getCachedData = (key) => memoryCache.get(key) || null;
+export const setCachedData = (key, data) => memoryCache.set(key, data);
+export const clearCachedData = (key) => {
+  if (key) memoryCache.delete(key);
+  else memoryCache.clear();
 };
 
 // Global Fetch Interceptor for Cross-Origin Session Resilience (Cookies + Authorization Bearer)
@@ -84,6 +128,9 @@ export const api = {
       if (data?.token) {
         setStoredToken(data.token);
       }
+      if (data?.user) {
+        setStoredUser(data.user);
+      }
       return data;
     },
 
@@ -98,6 +145,9 @@ export const api = {
       if (data?.token) {
         setStoredToken(data.token);
       }
+      if (data?.user) {
+        setStoredUser(data.user);
+      }
       return data;
     },
 
@@ -106,7 +156,11 @@ export const api = {
         ...defaultFetchOptions,
         headers: { 'Content-Type': 'application/json' }
       });
-      return handleResponse(res);
+      const data = await handleResponse(res);
+      if (data?.success && data?.user) {
+        setStoredUser(data.user);
+      }
+      return data;
     },
 
     logout: async () => {
@@ -119,6 +173,8 @@ export const api = {
         return await handleResponse(res);
       } finally {
         clearStoredToken();
+        clearStoredUser();
+        clearCachedData();
       }
     }
   },
@@ -458,17 +514,27 @@ export const api = {
   students: {
     getDashboardSummary: async (studentId = '') => {
       const query = studentId ? `?studentId=${studentId}` : '';
+      const cacheKey = `student_dashboard_summary_${studentId || 'me'}`;
       const res = await fetch(`${API_BASE}/students/dashboard-summary${query}`, {
         ...defaultFetchOptions
       });
-      return handleResponse(res);
+      const data = await handleResponse(res);
+      if (data?.success) {
+        setCachedData(cacheKey, data);
+      }
+      return data;
     },
 
     getMyProfile: async () => {
+      const cacheKey = 'student_my_profile';
       const res = await fetch(`${API_BASE}/students/profile/me`, {
         ...defaultFetchOptions
       });
-      return handleResponse(res);
+      const data = await handleResponse(res);
+      if (data?.success) {
+        setCachedData(cacheKey, data);
+      }
+      return data;
     },
 
     getAll: async () => {

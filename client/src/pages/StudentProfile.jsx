@@ -20,7 +20,7 @@ import { Badge } from '../components/common/Badge';
 import { Modal } from '../components/common/Modal';
 import { useToast } from '../context/ToastContext';
 import { useAuth } from '../context/AuthContext';
-import { api } from '../services/api';
+import { api, getCachedData, setCachedData } from '../services/api';
 
 export const StudentProfile = () => {
   const { currentUser } = useAuth();
@@ -35,14 +35,15 @@ export const StudentProfile = () => {
     }
   }, [tabParam]);
 
-  const [loading, setLoading] = useState(true);
-  const [student, setStudent] = useState(null);
-  const [projects, setProjects] = useState([]);
-  const [certifications, setCertifications] = useState([]);
-  const [internships, setInternships] = useState([]);
-  const [mentorNotes, setMentorNotes] = useState([]);
-  const [documents, setDocuments] = useState([]);
-  const [documentRequests, setDocumentRequests] = useState([]);
+  const cachedProfile = getCachedData('student_my_profile');
+  const [loading, setLoading] = useState(() => !cachedProfile);
+  const [student, setStudent] = useState(() => cachedProfile?.student || null);
+  const [projects, setProjects] = useState(() => cachedProfile?.projects || []);
+  const [certifications, setCertifications] = useState(() => cachedProfile?.certifications || []);
+  const [internships, setInternships] = useState(() => cachedProfile?.internships || []);
+  const [mentorNotes, setMentorNotes] = useState(() => cachedProfile?.mentorNotes || []);
+  const [documents, setDocuments] = useState(() => getCachedData('student_documents') || []);
+  const [documentRequests, setDocumentRequests] = useState(() => getCachedData('student_doc_requests') || []);
 
   // Modal states
   const [showAddProjectModal, setShowAddProjectModal] = useState(false);
@@ -51,10 +52,12 @@ export const StudentProfile = () => {
   const [showAddCertModal, setShowAddCertModal] = useState(false);
   const [certForm, setCertForm] = useState({ name: '', issuer: '', credentialId: '', issueDate: '' });
 
-  // Fetch real data from MongoDB
+  // Fetch real data from MongoDB with cache support
   const fetchProfile = async () => {
     try {
-      setLoading(true);
+      if (!getCachedData('student_my_profile')) {
+        setLoading(true);
+      }
       const [res, docsRes, reqsRes] = await Promise.all([
         api.students.getMyProfile(),
         api.documents.getAll(),
@@ -70,9 +73,11 @@ export const StudentProfile = () => {
       }
       if (docsRes.success) {
         setDocuments(docsRes.documents || []);
+        setCachedData('student_documents', docsRes.documents || []);
       }
       if (reqsRes.success) {
         setDocumentRequests(reqsRes.documentRequests || []);
+        setCachedData('student_doc_requests', reqsRes.documentRequests || []);
       }
     } catch (err) {
       console.error('Error loading profile:', err);
@@ -139,12 +144,23 @@ export const StudentProfile = () => {
     { id: 'mentoring', label: `Mentoring Notes (${mentorNotes.length})` }
   ];
 
-  if (loading) {
+  if (loading && !student) {
     return (
       <DashboardShell>
         <TopBar title="My 360° Profile" />
-        <div className="flex items-center justify-center py-20 text-brand-gray text-sm">
-          Loading live student portfolio from MongoDB...
+        <div className="space-y-6 animate-pulse">
+          {/* Hero Header Skeleton */}
+          <div className="bg-white rounded-3xl p-6 sm:p-8 border border-brand-gray-light/60 h-44 flex items-center gap-5">
+            <div className="w-20 h-20 sm:w-24 sm:h-24 rounded-2xl bg-brand-surface" />
+            <div className="space-y-2 flex-1">
+              <div className="h-6 w-48 bg-brand-surface rounded-lg" />
+              <div className="h-4 w-32 bg-brand-surface rounded-full" />
+            </div>
+          </div>
+          {/* Tabs Skeleton */}
+          <div className="h-11 w-full bg-brand-surface rounded-2xl" />
+          {/* Content Card Skeleton */}
+          <div className="bg-white rounded-3xl p-6 h-64 border border-brand-gray-light/60" />
         </div>
       </DashboardShell>
     );
