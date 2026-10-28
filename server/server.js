@@ -2324,6 +2324,7 @@ app.delete('/api/users/:id', protect, authorize('ADMIN'), async (req, res) => {
   } catch (err) {
     res.status(500).json({ success: false, error: 'Error deleting user' });
   }
+});
 // Serve frontend static build in production (Single-host deployment support)
 if (IS_PRODUCTION) {
   const clientDist = path.join(__dirname, '..', 'client', 'dist');
