@@ -353,15 +353,26 @@ export const MentorDashboard = () => {
 
                   <div className="flex items-center gap-2 self-end sm:self-auto">
                     {req.submittedDocument && (
-                      <a
-                        href={api.documents.getDownloadUrl(req.submittedDocument._id)}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="px-3 py-1.5 rounded-full bg-white border border-brand-gray-light hover:bg-brand-surface text-brand-dark text-xs font-bold flex items-center gap-1 shadow-sm"
-                      >
-                        <Eye className="w-3.5 h-3.5" />
-                        <span>Inspect</span>
-                      </a>
+                      <>
+                        <a
+                          href={api.documents.getDownloadUrl(req.submittedDocument._id, true)}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="px-3 py-1.5 rounded-full bg-white border border-brand-gray-light hover:bg-brand-surface text-brand-dark text-xs font-bold flex items-center gap-1 shadow-sm transition-colors"
+                          title="Preview document in new tab"
+                        >
+                          <Eye className="w-3.5 h-3.5" />
+                          <span>Inspect</span>
+                        </a>
+                        <a
+                          href={api.documents.getDownloadUrl(req.submittedDocument._id, false)}
+                          className="px-3 py-1.5 rounded-full bg-brand-surface border border-brand-gray-light hover:bg-brand-gray-light/60 text-brand-red text-xs font-bold flex items-center gap-1 shadow-sm transition-colors"
+                          title="Download document to computer"
+                        >
+                          <Download className="w-3.5 h-3.5" />
+                          <span>Download</span>
+                        </a>
+                      </>
                     )}
                     <button
                       onClick={() => {

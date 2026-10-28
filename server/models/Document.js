@@ -60,6 +60,10 @@ const documentSchema = new mongoose.Schema(
       type: String,
       required: true
     },
+    storageResourceType: {
+      type: String,
+      default: 'auto'
+    },
     documentRequest: {
       type: mongoose.Schema.Types.ObjectId,
       ref: 'DocumentRequest',

@@ -1,0 +1,205 @@
+<mxfile host="app.diagrams.net" modified="2026-10-28T12:00:00.000Z" agent="Mozilla/5.0" version="24.0.0" type="device">
+  <diagram id="overall-data-flow" name="Overall Data Flow Diagram (DFD)">
+    <mxGraphModel dx="1600" dy="1100" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1750" pageHeight="1250" background="#F8FAFC" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+
+        <!-- Title Banner -->
+        <mxCell id="title-banner" value="MEntee: Institutional Mentor–Mentee Management System&#xa;Overall Data Flow Diagram (Level 1 DFD &amp; End-to-End Operational Lifecycle)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#1E293B;strokeColor=#0F172A;fontColor=#FFFFFF;fontSize=18;fontStyle=1;align=center;" vertex="1" parent="1">
+          <mxGeometry x="40" y="30" width="1660" height="60" as="geometry" />
+        </mxCell>
+
+        <!-- ==================== EXTERNAL ENTITIES ==================== -->
+        <!-- Entity 1: Mentee -->
+        <mxCell id="ee-student" value="EXTERNAL ENTITY&#xa;Mentee (Student)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#3B82F6;strokeColor=#1D4ED8;fontColor=#FFFFFF;fontSize=13;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="40" y="140" width="220" height="70" as="geometry" />
+        </mxCell>
+
+        <!-- Entity 2: Faculty Mentor -->
+        <mxCell id="ee-mentor" value="EXTERNAL ENTITY&#xa;Faculty Mentor" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#10B981;strokeColor=#047857;fontColor=#FFFFFF;fontSize=13;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="1480" y="140" width="220" height="70" as="geometry" />
+        </mxCell>
+
+        <!-- Entity 3: Head of Department -->
+        <mxCell id="ee-hod" value="EXTERNAL ENTITY&#xa;Head of Department (HOD)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#F59E0B;strokeColor=#B45309;fontColor=#FFFFFF;fontSize=13;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="1480" y="740" width="220" height="70" as="geometry" />
+        </mxCell>
+
+        <!-- Entity 4: Cloud Storage Service -->
+        <mxCell id="ee-cloud" value="EXTERNAL SERVICE&#xa;Cloudinary Storage / CDN" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#8B5CF6;strokeColor=#6D28D9;fontColor=#FFFFFF;fontSize=13;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="40" y="740" width="220" height="70" as="geometry" />
+        </mxCell>
+
+        <!-- ==================== CORE PROCESSES (CIRCLES / ROUNDED RECTANGLES) ==================== -->
+        <!-- Process 1.0: Auth & Security -->
+        <mxCell id="p1-auth" value="1.0&#xa;Authentication &amp; RBAC Control&#xa;• Login &amp; Registration&#xa;• Password Hash (bcrypt)&#xa;• HttpOnly JWT Cookie Dispatch&#xa;• Role-Based Access Validation" style="rounded=1;arcSize=25;whiteSpace=wrap;html=1;fillColor=#EFF6FF;strokeColor=#3B82F6;strokeWidth=2;fontSize=11;fontStyle=1;fontColor=#1E3A8A;align=center;" vertex="1" parent="1">
+          <mxGeometry x="740" y="120" width="260" height="90" as="geometry" />
+        </mxCell>
+
+        <!-- Process 2.0: Profile & Portfolio -->
+        <mxCell id="p2-profile" value="2.0&#xa;Mentee 360° Profile Management&#xa;• Contact &amp; Emergency Details&#xa;• Career Ambitions &amp; Skills&#xa;• Co-Curricular Projects &amp; Certs" style="rounded=1;arcSize=25;whiteSpace=wrap;html=1;fillColor=#EFF6FF;strokeColor=#3B82F6;strokeWidth=2;fontSize=11;fontStyle=1;fontColor=#1E3A8A;align=center;" vertex="1" parent="1">
+          <mxGeometry x="360" y="270" width="260" height="85" as="geometry" />
+        </mxCell>
+
+        <!-- Process 3.0: Department Allocation -->
+        <mxCell id="p3-alloc" value="3.0&#xa;Mentorship Allocation &amp; Workload&#xa;• Filter Unassigned Students&#xa;• Check Mentor Capacity (e.g. 12/25)&#xa;• Assign/Reassign Mentors with Audit" style="rounded=1;arcSize=25;whiteSpace=wrap;html=1;fillColor=#FEF3C7;strokeColor=#F59E0B;strokeWidth=2;fontSize=11;fontStyle=1;fontColor=#92400E;align=center;" vertex="1" parent="1">
+          <mxGeometry x="1120" y="730" width="260" height="90" as="geometry" />
+        </mxCell>
+
+        <!-- Process 4.0: Academic Analytics Engine -->
+        <mxCell id="p4-acad" value="4.0&#xa;Academic Engine &amp; SGPA/CGPA&#xa;• Subject Marks Entry &amp; Credits&#xa;• Auto-Calculated SGPA &amp; CGPA&#xa;• Mentor Grade Verification&#xa;• Immutable Mark Audit Trail" style="rounded=1;arcSize=25;whiteSpace=wrap;html=1;fillColor=#FEF3C7;strokeColor=#D97706;strokeWidth=2;fontSize=11;fontStyle=1;fontColor=#B45309;align=center;" vertex="1" parent="1">
+          <mxGeometry x="360" y="440" width="260" height="95" as="geometry" />
+        </mxCell>
+
+        <!-- Process 5.0: Document Vault Pipeline -->
+        <mxCell id="p5-doc" value="5.0&#xa;Document Vault &amp; Review Pipeline&#xa;• Mentor Request Generation&#xa;• Multer Multipart Stream&#xa;• Upload to Cloudinary / Local Disk&#xa;• Approve/Reject with Feedback" style="rounded=1;arcSize=25;whiteSpace=wrap;html=1;fillColor=#F5F3FF;strokeColor=#8B5CF6;strokeWidth=2;fontSize=11;fontStyle=1;fontColor=#5B21B6;align=center;" vertex="1" parent="1">
+          <mxGeometry x="740" y="440" width="260" height="95" as="geometry" />
+        </mxCell>
+
+        <!-- Process 6.0: Advising Sessions & Lifecycle -->
+        <mxCell id="p6-meeting" value="6.0&#xa;Advising Meetings &amp; Lifecycle&#xa;• In-Person / Virtual Scheduling&#xa;• Agendas &amp; Video Call Links&#xa;• Post-Meeting Minutes Archive&#xa;• Action Items &amp; Observations" style="rounded=1;arcSize=25;whiteSpace=wrap;html=1;fillColor=#ECFDF5;strokeColor=#10B981;strokeWidth=2;fontSize=11;fontStyle=1;fontColor=#065F46;align=center;" vertex="1" parent="1">
+          <mxGeometry x="1120" y="270" width="260" height="95" as="geometry" />
+        </mxCell>
+
+        <!-- Process 7.0: Notifications & Alerts -->
+        <mxCell id="p7-notify" value="7.0&#xa;Notification &amp; Event Dispatcher&#xa;• Session Invitation Alerts&#xa;• Verification Feedback Badges&#xa;• Due Date &amp; Overdue Triggers" style="rounded=1;arcSize=25;whiteSpace=wrap;html=1;fillColor=#FDF2F8;strokeColor=#EC4899;strokeWidth=2;fontSize=11;fontStyle=1;fontColor=#9D174D;align=center;" vertex="1" parent="1">
+          <mxGeometry x="740" y="730" width="260" height="85" as="geometry" />
+        </mxCell>
+
+        <!-- ==================== DATA STORES (OPEN ENDED RECTANGLES) ==================== -->
+        <!-- Data Store D1: Users -->
+        <mxCell id="ds-users" value="D1: User Accounts &amp; Auth (MongoDB users)" style="html=1;dashed=0;whiteSpace=wrap;shape=partialRectangle;right=0;left=0;fillColor=#DBEAFE;strokeColor=#3B82F6;strokeWidth=2;fontStyle=1;fontSize=11;fontColor=#1E40AF;align=center;" vertex="1" parent="1">
+          <mxGeometry x="730" y="270" width="280" height="40" as="geometry" />
+        </mxCell>
+
+        <!-- Data Store D2: Student Profiles -->
+        <mxCell id="ds-profiles" value="D2: Student Profiles &amp; Allocations (studentprofiles)" style="html=1;dashed=0;whiteSpace=wrap;shape=partialRectangle;right=0;left=0;fillColor=#DBEAFE;strokeColor=#3B82F6;strokeWidth=2;fontStyle=1;fontSize=11;fontColor=#1E40AF;align=center;" vertex="1" parent="1">
+          <mxGeometry x="350" y="610" width="280" height="40" as="geometry" />
+        </mxCell>
+
+        <!-- Data Store D3: Academic Records -->
+        <mxCell id="ds-academic" value="D3: Academic Marks &amp; Audits (academicrecords)" style="html=1;dashed=0;whiteSpace=wrap;shape=partialRectangle;right=0;left=0;fillColor=#FEF3C7;strokeColor=#D97706;strokeWidth=2;fontStyle=1;fontSize=11;fontColor=#B45309;align=center;" vertex="1" parent="1">
+          <mxGeometry x="350" y="850" width="280" height="40" as="geometry" />
+        </mxCell>
+
+        <!-- Data Store D4: Documents -->
+        <mxCell id="ds-docs" value="D4: Document Vault &amp; Requests (documents, requests)" style="html=1;dashed=0;whiteSpace=wrap;shape=partialRectangle;right=0;left=0;fillColor=#F5F3FF;strokeColor=#8B5CF6;strokeWidth=2;fontStyle=1;fontSize=11;fontColor=#5B21B6;align=center;" vertex="1" parent="1">
+          <mxGeometry x="730" y="610" width="280" height="40" as="geometry" />
+        </mxCell>
+
+        <!-- Data Store D5: Meetings -->
+        <mxCell id="ds-meetings" value="D5: Advising Sessions &amp; Minutes (mentoringmeetings)" style="html=1;dashed=0;whiteSpace=wrap;shape=partialRectangle;right=0;left=0;fillColor=#ECFDF5;strokeColor=#10B981;strokeWidth=2;fontStyle=1;fontSize=11;fontColor=#065F46;align=center;" vertex="1" parent="1">
+          <mxGeometry x="1110" y="450" width="280" height="40" as="geometry" />
+        </mxCell>
+
+        <!-- Data Store D6: Notifications -->
+        <mxCell id="ds-notify" value="D6: Notifications Queue (notifications)" style="html=1;dashed=0;whiteSpace=wrap;shape=partialRectangle;right=0;left=0;fillColor=#FDF2F8;strokeColor=#EC4899;strokeWidth=2;fontStyle=1;fontSize=11;fontColor=#9D174D;align=center;" vertex="1" parent="1">
+          <mxGeometry x="730" y="870" width="280" height="40" as="geometry" />
+        </mxCell>
+
+        <!-- ==================== FLOW CONNECTORS ==================== -->
+        <!-- Student to Auth -->
+        <mxCell id="f-s-auth" value="Credentials / Registration" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;strokeColor=#2563EB;strokeWidth=2;fontSize=10;fontColor=#1E40AF;" edge="1" parent="1" source="ee-student" target="p1-auth">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <!-- Mentor to Auth -->
+        <mxCell id="f-m-auth" value="Faculty Login" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;strokeColor=#059669;strokeWidth=2;fontSize=10;fontColor=#047857;" edge="1" parent="1" source="ee-mentor" target="p1-auth">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <!-- Auth to D1 -->
+        <mxCell id="f-auth-d1" value="Read / Write User Tokens" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;strokeColor=#2563EB;strokeWidth=2;fontSize=10;fontColor=#1E40AF;" edge="1" parent="1" source="p1-auth" target="ds-users">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <!-- Student to Profile -->
+        <mxCell id="f-s-p2" value="Bio, Skills, Career Goals" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;strokeColor=#2563EB;strokeWidth=2;fontSize=10;fontColor=#1E40AF;" edge="1" parent="1" source="ee-student" target="p2-profile">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <!-- Profile to D2 -->
+        <mxCell id="f-p2-d2" value="Save 360° Profile Record" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;strokeColor=#2563EB;strokeWidth=2;fontSize=10;fontColor=#1E40AF;" edge="1" parent="1" source="p2-profile" target="ds-profiles">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <!-- Student to Academic -->
+        <mxCell id="f-s-p4" value="Enter Subject Marks &amp; Credits" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;strokeColor=#D97706;strokeWidth=2;fontSize=10;fontColor=#B45309;" edge="1" parent="1" source="ee-student" target="p4-acad">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <!-- Academic to D3 -->
+        <mxCell id="f-p4-d3" value="Store Semester SGPA &amp; CGPA" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;strokeColor=#D97706;strokeWidth=2;fontSize=10;fontColor=#B45309;" edge="1" parent="1" source="p4-acad" target="ds-academic">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <!-- Mentor to Academic -->
+        <mxCell id="f-m-acad" value="Validate Marks / Audit Log" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;strokeColor=#D97706;strokeWidth=2;fontSize=10;fontColor=#B45309;" edge="1" parent="1" source="ee-mentor" target="p4-acad">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <!-- Mentor to Doc Pipeline -->
+        <mxCell id="f-m-doc" value="Create Document Request&#xa;&amp; Verify Submissions" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;strokeColor=#8B5CF6;strokeWidth=2;fontSize=10;fontColor=#5B21B6;" edge="1" parent="1" source="ee-mentor" target="p5-doc">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <!-- Student to Doc Pipeline -->
+        <mxCell id="f-s-doc" value="Upload Documents (Multipart)" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;strokeColor=#8B5CF6;strokeWidth=2;fontSize=10;fontColor=#5B21B6;" edge="1" parent="1" source="ee-student" target="p5-doc">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <!-- Doc Pipeline to Cloud Storage -->
+        <mxCell id="f-doc-cloud" value="Stream File Binary" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;strokeColor=#8B5CF6;strokeWidth=2;fontSize=10;fontColor=#5B21B6;" edge="1" parent="1" source="p5-doc" target="ee-cloud">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <!-- Doc Pipeline to D4 -->
+        <mxCell id="f-doc-d4" value="Metadata &amp; Verification Status" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;strokeColor=#8B5CF6;strokeWidth=2;fontSize=10;fontColor=#5B21B6;" edge="1" parent="1" source="p5-doc" target="ds-docs">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <!-- Mentor to Meetings -->
+        <mxCell id="f-m-meet" value="Schedule Session, Log Minutes &amp; Actions" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;strokeColor=#10B981;strokeWidth=2;fontSize=10;fontColor=#065F46;" edge="1" parent="1" source="ee-mentor" target="p6-meeting">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <!-- Meetings to D5 -->
+        <mxCell id="f-meet-d5" value="Store Appointments &amp; Minutes" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;strokeColor=#10B981;strokeWidth=2;fontSize=10;fontColor=#065F46;" edge="1" parent="1" source="p6-meeting" target="ds-meetings">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <!-- HOD to Allocation -->
+        <mxCell id="f-hod-alloc" value="View Capacity &amp; Assign Mentors" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;strokeColor=#F59E0B;strokeWidth=2;fontSize=10;fontColor=#92400E;" edge="1" parent="1" source="ee-hod" target="p3-alloc">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <!-- Allocation to D2 -->
+        <mxCell id="f-alloc-d2" value="Update Active Mentor &amp; History" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;strokeColor=#F59E0B;strokeWidth=2;fontSize=10;fontColor=#92400E;" edge="1" parent="1" source="p3-alloc" target="ds-profiles">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <!-- Allocation to Notification -->
+        <mxCell id="f-alloc-notify" value="Trigger Allocation Notification" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;strokeColor=#EC4899;strokeWidth=2;fontSize=10;fontColor=#9D174D;" edge="1" parent="1" source="p3-alloc" target="p7-notify">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <!-- Notification to D6 -->
+        <mxCell id="f-notify-d6" value="Persist User Notification" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;strokeColor=#EC4899;strokeWidth=2;fontSize=10;fontColor=#9D174D;" edge="1" parent="1" source="p7-notify" target="ds-notify">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <!-- Notification to Student -->
+        <mxCell id="f-notify-student" value="Delivery to Student Bell Icon" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;strokeColor=#EC4899;strokeWidth=2;fontSize=10;fontColor=#9D174D;" edge="1" parent="1" source="p7-notify" target="ee-student">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <!-- Notification to Mentor -->
+        <mxCell id="f-notify-mentor" value="Delivery to Mentor Bell Icon" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;strokeColor=#EC4899;strokeWidth=2;fontSize=10;fontColor=#9D174D;" edge="1" parent="1" source="p7-notify" target="ee-mentor">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

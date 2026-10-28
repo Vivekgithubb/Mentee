@@ -1,0 +1,173 @@
+erDiagram
+    %% MEntee Database Schema Entity-Relationship Diagram (Mermaid ERD)
+
+    User ||--o| StudentProfile : "has profile (1:1)"
+    User ||--o{ StudentProfile : "mentors mentees (1:N)"
+    User ||--o{ AcademicRecord : "owns marks records (1:N)"
+    User ||--o{ Document : "uploads/owns documents (1:N)"
+    User ||--o{ Document : "reviews documents (1:N)"
+    User ||--o{ DocumentRequest : "initiates/receives requests (1:N)"
+    User ||--o{ MentoringMeeting : "attends session (1:N)"
+    User ||--o{ MentorNote : "writes/receives notes (1:N)"
+    User ||--o{ MentoringTask : "assigns/completes tasks (1:N)"
+    User ||--o{ Notification : "receives alerts (1:N)"
+    User ||--o| Department : "leads as HOD (1:1)"
+    DocumentRequest ||--o| Document : "fulfilled by (1:1)"
+
+    User {
+        ObjectId _id PK
+        string name
+        string email UK
+        string password
+        string role "ADMIN | HOD | MENTOR | MENTEE"
+        string department
+        string designation
+        string avatar
+        string status "ACTIVE | INACTIVE"
+        date createdAt
+        date updatedAt
+    }
+
+    StudentProfile {
+        ObjectId _id PK
+        ObjectId user FK "Unique link to User"
+        string studentId "USN"
+        string registerNo
+        string phone
+        string dob
+        string gender
+        string bloodGroup
+        string address
+        string department
+        string batch
+        number semester
+        string section
+        number cgpa
+        number backlogs
+        ObjectId mentor FK "Active Mentor User ID"
+        date mentorAssignedAt
+        ObjectId mentorAssignedBy FK
+        array assignmentHistory "Past mentors & reasons"
+        number attendancePercentage
+        string status "EXCELLENT | ON_TRACK | AT_RISK"
+        string riskReason
+        object career "Goal, Domain, Target Companies"
+        object skills "Programming, Frameworks, Cloud"
+        number profileCompletion
+    }
+
+    AcademicRecord {
+        ObjectId _id PK
+        ObjectId student FK "Reference to Student User"
+        number semester "1 - 12"
+        string academicYear
+        array subjects "Code, Name, Credits, Marks, Grade"
+        number sgpa
+        number totalMarks
+        number maxMarks
+        number percentage
+        number credits
+        string status "DRAFT | SUBMITTED | VERIFIED"
+        ObjectId lastModifiedBy FK
+        string lastModifiedRole
+        array auditHistory "Change reason, old & new values"
+    }
+
+    Document {
+        ObjectId _id PK
+        ObjectId student FK "Target Student User"
+        ObjectId uploadedBy FK "Uploader User"
+        string originalFilename
+        string displayName
+        string documentType "Marks Card | Certificate | Resume | ID"
+        string description
+        string mimeType
+        number fileSize
+        string storageProvider "cloudinary | local"
+        string storageId
+        string secureUrl
+        ObjectId documentRequest FK "Associated Request"
+        string reviewStatus "PENDING_REVIEW | APPROVED | REJECTED"
+        ObjectId reviewedBy FK
+        date reviewedAt
+        string reviewComment
+        string rejectionReason
+        array reviewHistory
+    }
+
+    DocumentRequest {
+        ObjectId _id PK
+        ObjectId student FK "Target Mentee User"
+        ObjectId mentor FK "Requesting Faculty User"
+        string title
+        string documentType
+        string description
+        string priority "LOW | MEDIUM | HIGH | URGENT"
+        date dueDate
+        boolean isRequired
+        string status "PENDING | UPLOADED | UNDER REVIEW | APPROVED | REJECTED"
+        ObjectId submittedDocument FK "Fulfilling Document"
+        array reviewHistory
+    }
+
+    MentoringMeeting {
+        ObjectId _id PK
+        ObjectId student FK "Mentee Participant"
+        ObjectId mentor FK "Mentor Host"
+        string title
+        string purpose
+        string agenda
+        string date
+        string startTime
+        string endTime
+        number duration "Minutes"
+        string type "IN_PERSON | VIRTUAL | ONLINE"
+        string venue
+        string meetingUrl
+        string status "SCHEDULED | CONFIRMED | COMPLETED | CANCELLED | RESCHEDULED"
+        string discussionPoints "Minutes of Meeting"
+        string studentConcerns
+        string mentorObservations
+        string actionItems
+        string followUpDate
+    }
+
+    MentorNote {
+        ObjectId _id PK
+        ObjectId student FK
+        ObjectId mentor FK
+        string title
+        string discussion
+        string actionRequired
+        string date
+        string tag
+    }
+
+    MentoringTask {
+        ObjectId _id PK
+        ObjectId student FK
+        ObjectId assignedBy FK
+        string title
+        string description
+        string priority "LOW | MEDIUM | HIGH | URGENT"
+        string dueDate
+        string status "PENDING | IN_PROGRESS | COMPLETED"
+        number progress "0 - 100%"
+    }
+
+    Department {
+        ObjectId _id PK
+        string name
+        string code UK
+        ObjectId hod FK
+    }
+
+    Notification {
+        ObjectId _id PK
+        ObjectId recipient FK
+        string title
+        string message
+        string type
+        boolean read
+        date createdAt
+    }

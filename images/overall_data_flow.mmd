@@ -1,0 +1,80 @@
+graph TD
+    %% MEntee Overall Data Flow Diagram (Level 1 DFD & Operational Lifecycle)
+
+    %% External Entities
+    EE_STU["Mentee (Student)"]
+    EE_MEN["Faculty Mentor"]
+    EE_HOD["Head of Dept (HOD)"]
+    EE_CLOUD["Cloudinary Storage / CDN"]
+
+    %% Processes
+    P1["1.0 Authentication & Session Control<br/>(Bcrypt Hashing, HttpOnly JWT, RBAC)"]
+    P2["2.0 Student 360° Profile Management<br/>(Bio, Career Goals, Skills & Portfolio)"]
+    P3["3.0 Mentorship Allocation & Workload<br/>(Filter Unassigned, Quotas 12/25, Reassign Audit)"]
+    P4["4.0 Academic Performance & Audit Engine<br/>(Marks Entry, Credits, SGPA/CGPA, Mark Audits)"]
+    P5["5.0 Document Vault & Verification Pipeline<br/>(Requests, Multer Multipart Stream, Review Workflow)"]
+    P6["6.0 Mentoring Sessions & Lifecycle<br/>(In-person/Virtual Schedule, Minutes, Action Items)"]
+    P7["7.0 Notification & Event Dispatcher<br/>(In-app alerts, bell center, status triggers)"]
+
+    %% Data Stores
+    D1[("D1: User Accounts & Auth (users)")]
+    D2[("D2: Student Profiles & Allocations (studentprofiles)")]
+    D3[("D3: Academic Marks & Audits (academicrecords)")]
+    D4[("D4: Document Vault & Metadata (documents)")]
+    D5[("D5: Document Requests (documentrequests)")]
+    D6[("D6: Mentoring Meetings & Minutes (mentoringmeetings)")]
+    D7[("D7: Notifications Queue (notifications)")]
+
+    %% Data Flows
+    %% Auth Flows
+    EE_STU -->|1. Credentials / Sign-up| P1
+    EE_MEN -->|1. Faculty Login| P1
+    EE_HOD -->|1. Admin / HOD Login| P1
+    P1 <-->|Read / Write Auth Tokens| D1
+
+    %% Profile Flows
+    EE_STU -->|2. Bio, Career Aspiration, Skills| P2
+    P2 -->|Save Profile & Portfolio| D2
+
+    %% HOD Allocation Flows
+    EE_HOD -->|3. View Unassigned Students & Quotas| P3
+    P3 <-->|Query Capacity & Update Active Mentor| D2
+    P3 -->|Dispatch Allocation Event| P7
+
+    %% Academic Engine Flows
+    EE_STU -->|4. Input Subject Marks & Credits| P4
+    P4 -->|Store SGPA, CGPA & Calculated Results| D3
+    EE_MEN -->|4. Verify Marks / Log Audit Reason| P4
+
+    %% Document Pipeline Flows
+    EE_MEN -->|5. Issue Formal Document Request| P5
+    P5 -->|Create Request Record| D5
+    D5 -.->|Trigger Mentee Alert| P7
+    EE_STU -->|5. Upload Requested / Vault Document| P5
+    P5 -->|Stream File Binary| EE_CLOUD
+    P5 -->|Store File Metadata & Status| D4
+    P5 -->|Update Fulfillment Link| D5
+    EE_MEN -->|5. Approve / Reject with Feedback| P5
+    P5 -->|Log Review Outcome| D4
+    P5 -.->|Dispatch Review Result| P7
+
+    %% Advising Meetings Flows
+    EE_MEN -->|6. Schedule Meeting (Topic, Agenda, Link)| P6
+    P6 -->|Persist Appointment| D6
+    P6 -.->|Invite Notification| P7
+    EE_MEN -->|6. Record Discussion Minutes & Actions| P6
+    P6 -->|Save Meeting Minutes & Follow-up| D6
+
+    %% Notifications Flows
+    P7 -->|Write In-App Notification| D7
+    P7 -->|Push Alert to Mentee Bell Icon| EE_STU
+    P7 -->|Push Alert to Mentor Bell Icon| EE_MEN
+
+    %% Styling
+    classDef entityStyle fill:#DBEAFE,stroke:#1D4ED8,stroke-width:2px,font-weight:bold,color:#1E3A8A;
+    classDef processStyle fill:#FEF3C7,stroke:#D97706,stroke-width:2px,font-weight:bold,color:#92400E;
+    classDef storeStyle fill:#F3E8FF,stroke:#7E22CE,stroke-width:2px,color:#581C87;
+
+    class EE_STU,EE_MEN,EE_HOD,EE_CLOUD entityStyle;
+    class P1,P2,P3,P4,P5,P6,P7 processStyle;
+    class D1,D2,D3,D4,D5,D6,D7 storeStyle;

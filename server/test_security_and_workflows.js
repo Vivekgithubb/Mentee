@@ -766,7 +766,10 @@ async function runTests() {
   console.log('Created DocumentRequest ID:', createdRequestId);
 
   // Student uploads a document against this request
-  const dummyFileContent = Buffer.from('%PDF-1.4 Mock PDF Content For Document Request Test');
+  const dummyFileContent = Buffer.from(
+    'JVBERi0xLjEKJcKlwrHDqwoxIDAgb2JqCjw8Ci9UeXBlIC9DYXRhbG9nCi9QYWdlcyAyIDAgUgo+PgplbmRvYmoKMiAwIG9iago8PAovVHlwZSAvUGFnZXMKL0tpZHMgWzMgMCBSXQovQ291bnQgMQo+PgplbmRvYmoKMyAwIG9iago8PAovVHlwZSAvUGFnZQovUGFyZW50IDIgMCBSCi9NZWRpYUJveCBbMCAwIDMwMCAxNDRdCj4+CmVuZG9iagp4cmVmCjAgNAowMDAwMDAwMDAwIDY1NTM1IGYgCjAwMDAwMDAwMTggMDAwMDAgbiAKMDAwMDAwMDA3NyAwMDAwMCBuIAowMDAwMDAwMTMwIDAwMDAwIG4gCnRyYWlsZXIKPDwKL1NpemUgNAovUm9vdCAxIDAgUgo+PgpzdGFydHhyZWYKMTg2CiUlRU9GCg==',
+    'base64'
+  );
   const uploadAgainstReqRes = await uploadMultipart(
     {
       hostname: '127.0.0.1',

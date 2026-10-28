@@ -10,7 +10,9 @@ import {
   MapPin,
   ExternalLink,
   Plus,
-  Trash2
+  Trash2,
+  Eye,
+  Download
 } from 'lucide-react';
 import { DashboardShell } from '../components/layout/DashboardShell';
 import { TopBar } from '../components/layout/TopBar';
@@ -443,14 +445,26 @@ export const StudentProfile = () => {
 
                   <div className="pt-4 mt-4 border-t border-brand-gray-light/60 flex items-center justify-between text-xs">
                     <span className="text-[11px] text-brand-gray">{new Date(doc.createdAt).toLocaleDateString()}</span>
-                    <a
-                      href={api.documents.getDownloadUrl(doc._id)}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="font-bold text-brand-red hover:underline flex items-center gap-1"
-                    >
-                      Download <ExternalLink className="w-3 h-3" />
-                    </a>
+                    <div className="flex items-center gap-2">
+                      <a
+                        href={api.documents.getDownloadUrl(doc._id, true)}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="font-semibold text-brand-dark hover:text-brand-red flex items-center gap-1 transition-colors"
+                        title="Preview in new tab"
+                      >
+                        <Eye className="w-3.5 h-3.5" />
+                        <span>Preview</span>
+                      </a>
+                      <a
+                        href={api.documents.getDownloadUrl(doc._id, false)}
+                        className="font-bold text-brand-red hover:underline flex items-center gap-1"
+                        title="Download to computer"
+                      >
+                        <Download className="w-3.5 h-3.5" />
+                        <span>Download</span>
+                      </a>
+                    </div>
                   </div>
                 </div>
               ))}

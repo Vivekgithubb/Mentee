@@ -1,0 +1,45 @@
+graph LR
+    %% MEntee System Architecture (Minimal, Professional & Print-Friendly)
+
+    subgraph CLIENT["Client Presentation Tier (React 18 + Vite)"]
+        direction TB
+        USERS["Stakeholders<br/>Student | Mentor | HOD | Admin"]
+        VIEWS["Role Dashboards (Tailwind CSS)<br/>• Mentee Hub (Profile, Marks, Vault)<br/>• Mentor Console (Roster, Review Queue)<br/>• HOD Allocation Portal<br/>• Advising Meetings & Minutes"]
+        SERVICES["Client Services<br/>• AuthContext (JWT Sync)<br/>• Axios Client (withCredentials)<br/>• File Upload Handler<br/>• SGPA/CGPA Calculators"]
+        USERS --> VIEWS --> SERVICES
+    end
+
+    subgraph GATEWAY["API Gateway & Security"]
+        direction TB
+        GATE["HTTPS / RESTful API<br/>• HttpOnly JWT Cookies<br/>• CORS Origin Whitelist<br/>• Zero-Trust Privacy Sandbox"]
+    end
+
+    subgraph BACKEND["Application Tier (Node.js + Express.js)"]
+        direction TB
+        MID["Middleware Pipeline<br/>• CORS & Body Parsers<br/>• JWT & RBAC Route Guard<br/>• Multer Multipart Engine"]
+        CTRL["Controllers & Business Logic<br/>• Auth & Users (/api/auth)<br/>• Student Profile (/api/profile)<br/>• Academic Engine (SGPA/CGPA)<br/>• Document Vault (/api/documents)<br/>• Document Requests (/api/doc-reqs)<br/>• Mentorship Allocation (/api/hod)<br/>• Mentoring Sessions (/api/meetings)<br/>• Notes & Tasks (/api/notes)<br/>• Notification Engine (/api/notifications)"]
+        MID --> CTRL
+    end
+
+    subgraph STORAGE["Data & Storage Tier"]
+        direction TB
+        DB[("MongoDB (Mongoose ODM)<br/>• users & studentprofiles<br/>• academicrecords & audits<br/>• documents & requests<br/>• mentoringmeetings & minutes<br/>• mentornotes & tasks<br/>• notifications & departments")]
+        FILES["File Storage<br/>• Cloudinary CDN (Primary)<br/>• Local Disk Sandbox (/uploads)<br/>• Zero-Trust File Access Control"]
+    end
+
+    %% Connections
+    SERVICES -->|HTTPS REST| GATE
+    GATE -->|Authorized Requests| MID
+    CTRL -->|Mongoose Queries| DB
+    CTRL -->|Stream File Binary| FILES
+
+    %% Styles
+    classDef clientStyle fill:#EFF6FF,stroke:#3B82F6,stroke-width:1.5px,color:#1E3A8A;
+    classDef gateStyle fill:#FEF3C7,stroke:#F59E0B,stroke-width:1.5px,color:#92400E;
+    classDef backStyle fill:#F0FDF4,stroke:#22C55E,stroke-width:1.5px,color:#166534;
+    classDef storeStyle fill:#FAF5FF,stroke:#A855F7,stroke-width:1.5px,color:#581C87;
+
+    class CLIENT,USERS,VIEWS,SERVICES clientStyle;
+    class GATEWAY,GATE gateStyle;
+    class BACKEND,MID,CTRL backStyle;
+    class STORAGE,DB,FILES storeStyle;

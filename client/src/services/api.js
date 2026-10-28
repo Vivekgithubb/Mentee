@@ -4,7 +4,9 @@
  * No JWTs, passwords, or authentication secrets are stored in Local Storage.
  */
 
-const API_BASE = '/api';
+const API_BASE = import.meta.env.VITE_API_URL
+  ? `${import.meta.env.VITE_API_URL.replace(/\/$/, '')}/api`
+  : '/api';
 
 const defaultFetchOptions = {
   credentials: 'include'
@@ -183,7 +185,7 @@ export const api = {
       return handleResponse(res);
     },
 
-    getDownloadUrl: (id) => `${API_BASE}/documents/${id}/download`,
+    getDownloadUrl: (id, preview = false) => `${API_BASE}/documents/${id}/download${preview ? '?preview=true' : ''}`,
 
     // Mentor Document Review Queue
     getMentorReviewQueue: async () => {

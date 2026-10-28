@@ -71,6 +71,24 @@ if (isCloudinaryConfigured) {
   console.log('📁 Local disk storage configured with protected authorization proxy');
 }
 
+// Helper to safely delete assets from Cloudinary with resource_type support
+const deleteFromCloudinary = async (publicId, resourceType = 'auto') => {
+  if (!isCloudinaryConfigured || !publicId) return;
+  try {
+    if (resourceType && resourceType !== 'auto') {
+      const res = await cloudinary.uploader.destroy(publicId, { resource_type: resourceType });
+      if (res?.result === 'ok') return;
+    }
+    // Fallback: try image first, then raw
+    const imgRes = await cloudinary.uploader.destroy(publicId, { resource_type: 'image' });
+    if (imgRes?.result !== 'ok') {
+      await cloudinary.uploader.destroy(publicId, { resource_type: 'raw' });
+    }
+  } catch (err) {
+    console.warn('Notice during Cloudinary cleanup:', err.message);
+  }
+};
+
 // Multer storage setup
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
@@ -827,6 +845,7 @@ app.post('/api/documents/upload', protect, upload.single('file'), async (req, re
     let storageProvider = 'local';
     let storageId = req.file.filename;
     let secureUrl = `/api/documents/${req.file.filename}/file`;
+    let storageResourceType = 'auto';
 
     if (isCloudinaryConfigured) {
       try {
@@ -838,6 +857,7 @@ app.post('/api/documents/upload', protect, upload.single('file'), async (req, re
         storageProvider = 'cloudinary';
         storageId = cloudUpload.public_id;
         secureUrl = cloudUpload.secure_url;
+        storageResourceType = cloudUpload.resource_type || 'auto';
 
         if (fs.existsSync(req.file.path)) {
           fs.unlinkSync(req.file.path);
@@ -859,6 +879,7 @@ app.post('/api/documents/upload', protect, upload.single('file'), async (req, re
       storageProvider,
       storageId,
       secureUrl,
+      storageResourceType,
       documentRequest: documentRequestId || null,
       reviewStatus: 'PENDING_REVIEW',
       reviewHistory: [
@@ -1018,8 +1039,18 @@ app.get('/api/documents/:id/download', protect, async (req, res) => {
       });
     }
 
+    const isPreview = req.query.preview === 'true' || req.query.view === 'true';
+
     if (document.storageProvider === 'cloudinary') {
-      return res.redirect(document.secureUrl);
+      if (isPreview) {
+        return res.redirect(document.secureUrl);
+      }
+      // Cloudinary flag format: fl_attachment or fl_attachment:filename (filename must not contain dots/colons)
+      const ext = path.extname(document.originalFilename || '');
+      const rawBasename = path.basename(document.originalFilename || 'document', ext);
+      const safeBasename = rawBasename.replace(/[^a-zA-Z0-9_-]/g, '_') || 'document';
+      const downloadUrl = document.secureUrl.replace('/upload/', `/upload/fl_attachment:${safeBasename}/`);
+      return res.redirect(downloadUrl);
     }
 
     const localFilePath = path.join(UPLOADS_DIR, document.storageId);
@@ -1027,12 +1058,36 @@ app.get('/api/documents/:id/download', protect, async (req, res) => {
       return res.status(404).json({ success: false, error: 'Physical document file missing on disk' });
     }
 
+    const disposition = isPreview ? 'inline' : 'attachment';
     res.setHeader('Content-Type', document.mimeType || 'application/octet-stream');
-    res.setHeader('Content-Disposition', `inline; filename="${document.originalFilename}"`);
+    res.setHeader('Content-Disposition', `${disposition}; filename="${document.originalFilename}"`);
     res.sendFile(localFilePath);
   } catch (err) {
     console.error('Download authorization error:', err);
     res.status(500).json({ success: false, error: 'Error processing document download' });
+  }
+});
+
+// GET /api/documents/:filename/file (Authorized direct local file stream)
+app.get('/api/documents/:filename/file', protect, async (req, res) => {
+  try {
+    const document = await Document.findOne({ storageId: req.params.filename });
+    if (!document) {
+      return res.status(404).json({ success: false, error: 'Document not found' });
+    }
+    const access = await checkDocumentAccess(req.user, document.student);
+    if (!access.allowed) {
+      return res.status(403).json({ success: false, error: `Forbidden: ${access.reason}` });
+    }
+    const localFilePath = path.join(UPLOADS_DIR, req.params.filename);
+    if (!fs.existsSync(localFilePath)) {
+      return res.status(404).json({ success: false, error: 'Physical document file missing on disk' });
+    }
+    res.setHeader('Content-Type', document.mimeType || 'application/octet-stream');
+    res.setHeader('Content-Disposition', `inline; filename="${document.originalFilename}"`);
+    res.sendFile(localFilePath);
+  } catch (err) {
+    res.status(500).json({ success: false, error: 'Error processing document file' });
   }
 });
 
@@ -1167,11 +1222,7 @@ app.put('/api/documents/:id/replace', protect, upload.single('file'), async (req
 
     // Clean up old storage asset
     if (document.storageProvider === 'cloudinary' && isCloudinaryConfigured) {
-      try {
-        await cloudinary.uploader.destroy(document.storageId);
-      } catch (e) {
-        // ignore
-      }
+      await deleteFromCloudinary(document.storageId, document.storageResourceType);
     } else {
       const oldFilePath = path.join(UPLOADS_DIR, document.storageId);
       if (fs.existsSync(oldFilePath)) {
@@ -1186,6 +1237,7 @@ app.put('/api/documents/:id/replace', protect, upload.single('file'), async (req
     let storageProvider = 'local';
     let storageId = req.file.filename;
     let secureUrl = `/api/documents/${req.file.filename}/file`;
+    let storageResourceType = 'auto';
 
     if (isCloudinaryConfigured) {
       try {
@@ -1196,6 +1248,7 @@ app.put('/api/documents/:id/replace', protect, upload.single('file'), async (req
         storageProvider = 'cloudinary';
         storageId = cloudUpload.public_id;
         secureUrl = cloudUpload.secure_url;
+        storageResourceType = cloudUpload.resource_type || 'auto';
         if (fs.existsSync(req.file.path)) fs.unlinkSync(req.file.path);
       } catch (e) {
         console.warn('Fallback to local on replace');
@@ -1208,6 +1261,7 @@ app.put('/api/documents/:id/replace', protect, upload.single('file'), async (req
     document.storageProvider = storageProvider;
     document.storageId = storageId;
     document.secureUrl = secureUrl;
+    document.storageResourceType = storageResourceType;
     document.reviewStatus = 'PENDING_REVIEW';
     document.rejectionReason = '';
 
@@ -1237,11 +1291,7 @@ app.delete('/api/documents/:id', protect, async (req, res) => {
     }
 
     if (document.storageProvider === 'cloudinary' && isCloudinaryConfigured) {
-      try {
-        await cloudinary.uploader.destroy(document.storageId);
-      } catch (e) {
-        // ignore
-      }
+      await deleteFromCloudinary(document.storageId, document.storageResourceType);
     } else {
       const localFilePath = path.join(UPLOADS_DIR, document.storageId);
       if (fs.existsSync(localFilePath)) {
@@ -2274,7 +2324,17 @@ app.delete('/api/users/:id', protect, authorize('ADMIN'), async (req, res) => {
   } catch (err) {
     res.status(500).json({ success: false, error: 'Error deleting user' });
   }
-});
+// Serve frontend static build in production (Single-host deployment support)
+if (IS_PRODUCTION) {
+  const clientDist = path.join(__dirname, '..', 'client', 'dist');
+  if (fs.existsSync(clientDist)) {
+    app.use(express.static(clientDist));
+    app.get('*', (req, res, next) => {
+      if (req.path.startsWith('/api')) return next();
+      res.sendFile(path.join(clientDist, 'index.html'));
+    });
+  }
+}
 
 // Start Server with fallback handling
 const server = app.listen(PORT, () => {
