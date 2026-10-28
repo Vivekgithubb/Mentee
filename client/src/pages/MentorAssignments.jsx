@@ -36,6 +36,7 @@ export const MentorAssignments = () => {
   const [statusFilter, setStatusFilter] = useState('ALL'); // ALL, UNASSIGNED, ASSIGNED
   const [semesterFilter, setSemesterFilter] = useState('');
   const [sectionFilter, setSectionFilter] = useState('');
+  const [departmentFilter, setDepartmentFilter] = useState('ALL');
 
   // Modals
   const [showAssignModal, setShowAssignModal] = useState(false);
@@ -53,9 +54,14 @@ export const MentorAssignments = () => {
           search,
           status: statusFilter,
           semester: semesterFilter,
-          section: sectionFilter
+          section: sectionFilter,
+          department: currentUser?.role === 'ADMIN' && departmentFilter !== 'ALL' ? departmentFilter : undefined
         }),
-        api.hod.getAvailableMentors()
+        api.hod.getAvailableMentors(
+          currentUser?.role === 'ADMIN' && departmentFilter !== 'ALL'
+            ? { department: departmentFilter }
+            : {}
+        )
       ]);
 
       if (assignRes.success) {
@@ -73,7 +79,7 @@ export const MentorAssignments = () => {
     } finally {
       setLoading(false);
     }
-  }, [search, statusFilter, semesterFilter, sectionFilter, addToast, selectedMentorId]);
+  }, [search, statusFilter, semesterFilter, sectionFilter, departmentFilter, currentUser, addToast, selectedMentorId]);
 
   useEffect(() => {
     fetchAssignmentsData();
@@ -251,6 +257,25 @@ export const MentorAssignments = () => {
                     <option key={sec} value={sec}>Section {sec}</option>
                   ))}
                 </select>
+
+                {currentUser?.role === 'ADMIN' && (
+                  <select
+                    value={departmentFilter}
+                    onChange={(e) => setDepartmentFilter(e.target.value)}
+                    className="p-1.5 rounded-xl border border-brand-red/30 bg-white text-xs font-bold text-brand-dark"
+                  >
+                    <option value="ALL">All Departments</option>
+                    <option value="CSE">CSE (Computer Science)</option>
+                    <option value="ECE">ECE (Electronics)</option>
+                    <option value="MECH">MECH (Mechanical)</option>
+                  </select>
+                )}
+
+                {currentUser?.role === 'HOD' && (
+                  <span className="text-[11px] font-bold text-brand-red bg-brand-red/10 px-2.5 py-1 rounded-full whitespace-nowrap">
+                    Dept: {currentUser?.department || 'CSE'}
+                  </span>
+                )}
               </div>
             </div>
 
@@ -397,49 +422,78 @@ export const MentorAssignments = () => {
           </div>
 
           <div>
-            <label className="font-bold text-brand-dark block mb-1.5">Select Faculty Mentor</label>
+            <label className="font-bold text-brand-dark block mb-1.5">
+              Select Faculty Mentor ({selectedStudent?.department || 'Department'})
+            </label>
             <div className="space-y-2 max-h-56 overflow-y-auto pr-1">
-              {availableMentors.map((m) => (
-                <label
-                  key={m.id}
-                  className={`p-3 rounded-2xl border flex items-center justify-between cursor-pointer transition-all ${
-                    selectedMentorId === m.id
-                      ? 'border-brand-dark bg-brand-dark text-white'
-                      : 'border-brand-gray-light/60 bg-brand-surface hover:border-brand-dark text-brand-dark'
-                  }`}
-                >
-                  <div className="flex items-center gap-3">
-                    <input
-                      type="radio"
-                      name="mentorSelection"
-                      value={m.id}
-                      checked={selectedMentorId === m.id}
-                      onChange={() => setSelectedMentorId(m.id)}
-                      className="hidden"
-                    />
-                    <img
-                      src={m.avatar || `https://api.dicebear.com/7.x/initials/svg?seed=${encodeURIComponent(m.name)}`}
-                      alt={m.name}
-                      className="w-9 h-9 rounded-xl object-cover ring-1 ring-white/20 shrink-0"
-                    />
-                    <div>
-                      <h5 className="font-bold text-xs">{m.name}</h5>
-                      <span className={`text-[10px] ${selectedMentorId === m.id ? 'text-white/80' : 'text-brand-gray'}`}>
-                        {m.designation} • {m.department}
+              {(() => {
+                const sDept = (selectedStudent?.department || '').toLowerCase();
+                const matchedMentors = availableMentors.filter((m) => {
+                  if (!sDept) return true;
+                  const mDept = (m.department || '').toLowerCase();
+                  if (sDept.includes('cse') || sDept.includes('computer')) {
+                    return mDept.includes('cse') || mDept.includes('computer');
+                  }
+                  if (sDept.includes('ece') || sDept.includes('electronics')) {
+                    return mDept.includes('ece') || mDept.includes('electronics');
+                  }
+                  if (sDept.includes('mech') || sDept.includes('mechanical')) {
+                    return mDept.includes('mech') || mDept.includes('mechanical');
+                  }
+                  return mDept.includes(sDept) || sDept.includes(mDept);
+                });
+
+                if (matchedMentors.length === 0) {
+                  return (
+                    <div className="p-4 text-center bg-brand-surface rounded-xl border border-brand-gray-light text-brand-gray">
+                      <p className="font-semibold text-xs text-brand-dark">No mentors found for department "{selectedStudent?.department}".</p>
+                      <p className="text-[11px] mt-1">Please register a faculty mentor with department "{selectedStudent?.department}".</p>
+                    </div>
+                  );
+                }
+
+                return matchedMentors.map((m) => (
+                  <label
+                    key={m.id}
+                    className={`p-3 rounded-2xl border flex items-center justify-between cursor-pointer transition-all ${
+                      selectedMentorId === m.id
+                        ? 'border-brand-dark bg-brand-dark text-white'
+                        : 'border-brand-gray-light/60 bg-brand-surface hover:border-brand-dark text-brand-dark'
+                    }`}
+                  >
+                    <div className="flex items-center gap-3">
+                      <input
+                        type="radio"
+                        name="mentorSelection"
+                        value={m.id}
+                        checked={selectedMentorId === m.id}
+                        onChange={() => setSelectedMentorId(m.id)}
+                        className="hidden"
+                      />
+                      <img
+                        src={m.avatar || `https://api.dicebear.com/7.x/initials/svg?seed=${encodeURIComponent(m.name)}`}
+                        alt={m.name}
+                        className="w-9 h-9 rounded-xl object-cover ring-1 ring-white/20 shrink-0"
+                      />
+                      <div>
+                        <h5 className="font-bold text-xs">{m.name}</h5>
+                        <span className={`text-[10px] ${selectedMentorId === m.id ? 'text-white/80' : 'text-brand-gray'}`}>
+                          {m.designation} • {m.department}
+                        </span>
+                      </div>
+                    </div>
+
+                    <div className="text-right">
+                      <span className="text-xs font-bold">{m.currentMenteeCount} / 25</span>
+                      <span className={`block text-[9px] font-bold ${
+                        selectedMentorId === m.id ? 'text-brand-peach' : m.availability === 'AVAILABLE' ? 'text-emerald-600' : 'text-brand-red'
+                      }`}>
+                        {m.availability}
                       </span>
                     </div>
-                  </div>
-
-                  <div className="text-right">
-                    <span className="text-xs font-bold">{m.currentMenteeCount} / 25</span>
-                    <span className={`block text-[9px] font-bold ${
-                      selectedMentorId === m.id ? 'text-brand-peach' : m.availability === 'AVAILABLE' ? 'text-emerald-600' : 'text-brand-red'
-                    }`}>
-                      {m.availability}
-                    </span>
-                  </div>
-                </label>
-              ))}
+                  </label>
+                ));
+              })()}
             </div>
           </div>
 

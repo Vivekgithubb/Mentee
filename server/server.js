@@ -183,6 +183,22 @@ const clearAuthCookie = (res) => {
   });
 };
 
+// Helper for resilient department matching (e.g. CSE matches Computer Science & Engineering)
+const getDeptRegex = (dept) => {
+  if (!dept || dept === 'ALL') return null;
+  const trimmed = String(dept).trim();
+  if (/^cse$/i.test(trimmed) || /computer/i.test(trimmed)) {
+    return /cse|computer/i;
+  }
+  if (/^ece$/i.test(trimmed) || /electronics/i.test(trimmed)) {
+    return /ece|electronics/i;
+  }
+  if (/^mech$/i.test(trimmed) || /mechanical/i.test(trimmed)) {
+    return /mech|mechanical/i;
+  }
+  return new RegExp(trimmed, 'i');
+};
+
 // =========================================================================
 // DOCUMENT PRIVACY ACCESS POLICY HELPER
 // CRITICAL PRIVACY RULE: A student's uploaded documents are accessible ONLY
@@ -271,6 +287,7 @@ app.post('/api/auth/register', async (req, res) => {
 
     res.status(201).json({
       success: true,
+      token,
       user: {
         id: user._id,
         name: user.name,
@@ -311,6 +328,7 @@ app.post('/api/auth/login', async (req, res) => {
 
     res.json({
       success: true,
+      token,
       user: {
         id: user._id,
         name: user.name,
@@ -364,9 +382,11 @@ app.get('/api/hod/mentor-assignments', protect, authorize('HOD', 'ADMIN'), async
     let query = {};
 
     if (req.user.role === 'HOD' && req.user.department) {
-      query.department = { $regex: new RegExp(req.user.department, 'i') };
-    } else if (department) {
-      query.department = { $regex: new RegExp(department, 'i') };
+      const deptRegex = getDeptRegex(req.user.department);
+      if (deptRegex) query.department = { $regex: deptRegex };
+    } else if (department && department !== 'ALL') {
+      const deptRegex = getDeptRegex(department);
+      if (deptRegex) query.department = { $regex: deptRegex };
     }
 
     if (semester) query.semester = Number(semester);
@@ -404,7 +424,8 @@ app.get('/api/hod/unassigned-students', protect, authorize('HOD', 'ADMIN'), asyn
   try {
     let query = { mentor: null };
     if (req.user.role === 'HOD' && req.user.department) {
-      query.department = { $regex: new RegExp(req.user.department, 'i') };
+      const deptRegex = getDeptRegex(req.user.department);
+      if (deptRegex) query.department = { $regex: deptRegex };
     }
 
     const unassigned = await StudentProfile.find(query)
@@ -421,8 +442,14 @@ app.get('/api/hod/unassigned-students', protect, authorize('HOD', 'ADMIN'), asyn
 app.get('/api/hod/available-mentors', protect, authorize('HOD', 'ADMIN'), async (req, res) => {
   try {
     let query = { role: 'MENTOR' };
+    const { department } = req.query;
+
     if (req.user.role === 'HOD' && req.user.department) {
-      query.department = { $regex: new RegExp(req.user.department, 'i') };
+      const deptRegex = getDeptRegex(req.user.department);
+      if (deptRegex) query.department = { $regex: deptRegex };
+    } else if (req.user.role === 'ADMIN' && department && department !== 'ALL') {
+      const deptRegex = getDeptRegex(department);
+      if (deptRegex) query.department = { $regex: deptRegex };
     }
 
     const mentors = await User.find(query).select('name email designation department avatar status').sort('name');

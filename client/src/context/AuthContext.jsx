@@ -1,13 +1,11 @@
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
-import { api } from '../services/api';
+import { api, setStoredToken, clearStoredToken } from '../services/api';
 
 const AuthContext = createContext(null);
 
 // Specific legacy application-owned storage keys that previously stored plaintext credentials or tokens
 const INSECURE_APPLICATION_STORAGE_KEYS = [
-  'mentee_jwt_token',
   'SignupForm',
-  'token',
   'user',
   'dealroom_session_id'
 ];
@@ -37,7 +35,7 @@ export const AuthProvider = ({ children }) => {
   const [currentUser, setCurrentUser] = useState(null);
   const [loading, setLoading] = useState(true);
 
-  // Restore session from HttpOnly cookie via GET /api/auth/me
+  // Restore session via GET /api/auth/me (supports Authorization Bearer + HttpOnly cookies)
   const checkAuthStatus = useCallback(async () => {
     // 1. Purge legacy insecure storage keys on application startup
     purgeLegacyInsecureStorage();
@@ -47,10 +45,12 @@ export const AuthProvider = ({ children }) => {
       if (res.success && res.user) {
         setCurrentUser(res.user);
       } else {
+        clearStoredToken();
         setCurrentUser(null);
       }
     } catch (err) {
-      // Session expired or no valid HttpOnly cookie
+      // Session expired or no valid credentials
+      clearStoredToken();
       setCurrentUser(null);
     } finally {
       setLoading(false);
@@ -88,6 +88,7 @@ export const AuthProvider = ({ children }) => {
     } catch (e) {
       console.warn('Logout notification error:', e);
     } finally {
+      clearStoredToken();
       purgeLegacyInsecureStorage();
       setCurrentUser(null);
     }

@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Users, Award, AlertCircle, ExternalLink } from 'lucide-react';
+import { Users, Award, AlertCircle, ExternalLink, Layers, UserCheck } from 'lucide-react';
 import { DashboardShell } from '../components/layout/DashboardShell';
 import { TopBar } from '../components/layout/TopBar';
 import { MetricCard } from '../components/common/MetricCard';
@@ -44,7 +44,18 @@ export const HODDashboard = () => {
 
   return (
     <DashboardShell>
-      <TopBar title="Department Analytics" />
+      <TopBar
+        title="Department Analytics"
+        action={
+          <button
+            onClick={() => navigate('/mentor-assignments')}
+            className="px-4 py-2.5 rounded-full bg-brand-red hover:bg-brand-red-hover text-white text-xs font-bold shadow-md hover:shadow-lg transition-all flex items-center gap-2"
+          >
+            <Layers className="w-4 h-4" />
+            <span>Assign Mentors to Mentees</span>
+          </button>
+        }
+      />
 
       {/* Top Department Metrics */}
       <section className="grid grid-cols-1 md:grid-cols-12 gap-5">
@@ -152,12 +163,21 @@ export const HODDashboard = () => {
               <h3 className="text-xl font-bold text-brand-dark">Faculty Mentors ({facultyMentors.length})</h3>
               <p className="text-xs text-brand-gray mt-0.5">Faculty members allocated in MongoDB database</p>
             </div>
-            <button
-              onClick={() => addToast('Department Audit Summary Exported')}
-              className="text-xs font-bold px-3 py-1.5 rounded-full bg-brand-dark text-white hover:bg-brand-dark-surface transition-colors"
-            >
-              Export Report
-            </button>
+            <div className="flex items-center gap-2">
+              <button
+                onClick={() => navigate('/mentor-assignments')}
+                className="text-xs font-bold px-3.5 py-1.5 rounded-full bg-brand-red text-white hover:bg-brand-red-hover shadow-sm transition-colors flex items-center gap-1.5"
+              >
+                <Layers className="w-3.5 h-3.5" />
+                <span>Allocate Mentors</span>
+              </button>
+              <button
+                onClick={() => addToast('Department Audit Summary Exported')}
+                className="text-xs font-bold px-3 py-1.5 rounded-full bg-brand-dark text-white hover:bg-brand-dark-surface transition-colors"
+              >
+                Export Report
+              </button>
+            </div>
           </div>
 
           {loading ? (

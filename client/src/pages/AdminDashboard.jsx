@@ -78,7 +78,27 @@ export const AdminDashboard = () => {
 
   return (
     <DashboardShell>
-      <TopBar title="Institutional Administration" />
+      <TopBar
+        title="Institutional Administration"
+        action={
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => navigate('/mentor-assignments')}
+              className="px-4 py-2.5 rounded-full bg-brand-red hover:bg-brand-red-hover text-white text-xs font-bold shadow-md hover:shadow-lg transition-all flex items-center gap-2"
+            >
+              <Layers className="w-4 h-4" />
+              <span>Mentor-Mentee Allocations</span>
+            </button>
+            <button
+              onClick={() => setShowCreateUserModal(true)}
+              className="px-4 py-2.5 rounded-full bg-brand-dark hover:bg-brand-dark-surface text-white text-xs font-bold shadow-md hover:shadow-lg transition-all flex items-center gap-2"
+            >
+              <UserPlus className="w-4 h-4" />
+              <span>Create User</span>
+            </button>
+          </div>
+        }
+      />
 
       {/* Top Admin KPI Row */}
       <section className="grid grid-cols-1 md:grid-cols-12 gap-5">

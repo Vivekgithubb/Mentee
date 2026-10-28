@@ -4,10 +4,12 @@ import { Search, ExternalLink, UserCheck } from 'lucide-react';
 import { DashboardShell } from '../components/layout/DashboardShell';
 import { TopBar } from '../components/layout/TopBar';
 import { Badge } from '../components/common/Badge';
+import { useAuth } from '../context/AuthContext';
 import { api } from '../services/api';
 
 export const MenteesList = () => {
   const navigate = useNavigate();
+  const { currentUser } = useAuth();
   const [students, setStudents] = useState([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
@@ -42,7 +44,20 @@ export const MenteesList = () => {
 
   return (
     <DashboardShell>
-      <TopBar title="Mentees Directory" onSearch={setSearch} />
+      <TopBar
+        title="Mentees Directory"
+        onSearch={setSearch}
+        action={
+          (currentUser?.role === 'HOD' || currentUser?.role === 'ADMIN') && (
+            <button
+              onClick={() => navigate('/mentor-assignments')}
+              className="px-3.5 py-1.5 rounded-full bg-brand-red hover:bg-brand-red-hover text-white text-xs font-bold shadow-sm transition-all"
+            >
+              Assign Mentors
+            </button>
+          )
+        }
+      />
 
       <section className="bg-white rounded-3xl p-6 sm:p-8 border border-brand-gray-light/60 shadow-editorial space-y-6">
         {/* Filter Toolbar */}
@@ -126,12 +141,22 @@ export const MenteesList = () => {
                       {std.mentor ? std.mentor.name : <span className="text-brand-gray italic">Unassigned</span>}
                     </td>
                     <td className="py-3.5 px-4 text-right">
-                    <button
-                        onClick={() => navigate(`/students/${std._id}`)}
-                        className="text-xs font-bold text-brand-red hover:underline inline-flex items-center gap-1"
-                      >
-                        360° Profile <ExternalLink className="w-3 h-3" />
-                      </button>
+                      <div className="flex items-center justify-end gap-2">
+                        {(currentUser?.role === 'HOD' || currentUser?.role === 'ADMIN') && (
+                          <button
+                            onClick={() => navigate('/mentor-assignments')}
+                            className="text-xs font-bold px-2.5 py-1 rounded-full bg-brand-surface border border-brand-gray-light hover:bg-brand-red hover:text-white transition-all"
+                          >
+                            {std.mentor ? 'Change Mentor' : 'Assign Mentor'}
+                          </button>
+                        )}
+                        <button
+                          onClick={() => navigate(`/students/${std._id}`)}
+                          className="text-xs font-bold text-brand-red hover:underline inline-flex items-center gap-1"
+                        >
+                          360° Profile <ExternalLink className="w-3 h-3" />
+                        </button>
+                      </div>
                     </td>
                   </tr>
                 ))}

@@ -33,7 +33,7 @@ export const Sidebar = () => {
       case 'HOD':
         return [
           { to: '/dashboard', icon: Home, label: 'HOD Overview' },
-          { to: '/mentor-assignments', icon: Layers, label: 'Mentor Assignments' },
+          { to: '/mentor-assignments', icon: Layers, label: 'Assign Mentors to Mentees' },
           { to: '/mentees', icon: Users, label: 'Department Students' },
           { to: '/analytics', icon: BarChart3, label: 'Department Analytics' },
           { to: '/settings', icon: Settings, label: 'Settings' }
@@ -42,7 +42,7 @@ export const Sidebar = () => {
         return [
           { to: '/dashboard', icon: Home, label: 'Admin Console' },
           { to: '/users', icon: Users, label: 'User Governance' },
-          { to: '/mentor-assignments', icon: Layers, label: 'Mentor Allocations' },
+          { to: '/mentor-assignments', icon: Layers, label: 'Assign Mentors to Mentees' },
           { to: '/analytics', icon: BarChart3, label: 'Institutional Metrics' },
           { to: '/settings', icon: Settings, label: 'System Configuration' }
         ];

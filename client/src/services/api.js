@@ -4,6 +4,56 @@
  * No JWTs, passwords, or authentication secrets are stored in Local Storage.
  */
 
+const TOKEN_KEY = 'mentee_auth_token';
+
+export const getStoredToken = () => {
+  try {
+    if (typeof window === 'undefined') return null;
+    return sessionStorage.getItem(TOKEN_KEY) || localStorage.getItem(TOKEN_KEY) || null;
+  } catch {
+    return null;
+  }
+};
+
+export const setStoredToken = (token) => {
+  try {
+    if (typeof window === 'undefined') return;
+    if (token) {
+      sessionStorage.setItem(TOKEN_KEY, token);
+      localStorage.setItem(TOKEN_KEY, token);
+    }
+  } catch (err) {
+    console.warn('Unable to persist auth token:', err);
+  }
+};
+
+export const clearStoredToken = () => {
+  try {
+    if (typeof window === 'undefined') return;
+    sessionStorage.removeItem(TOKEN_KEY);
+    localStorage.removeItem(TOKEN_KEY);
+  } catch (err) {
+    console.warn('Unable to clear auth token:', err);
+  }
+};
+
+// Global Fetch Interceptor for Cross-Origin Session Resilience (Cookies + Authorization Bearer)
+if (typeof window !== 'undefined' && window.fetch) {
+  const _originalFetch = window.fetch.bind(window);
+  window.fetch = async (input, init = {}) => {
+    const token = getStoredToken();
+    const headers = new Headers(init.headers || {});
+    if (token && !headers.has('Authorization')) {
+      headers.set('Authorization', `Bearer ${token}`);
+    }
+    return _originalFetch(input, {
+      ...init,
+      credentials: init.credentials || 'include',
+      headers
+    });
+  };
+}
+
 const API_BASE = import.meta.env.VITE_API_URL
   ? `${import.meta.env.VITE_API_URL.replace(/\/$/, '')}/api`
   : '/api';
@@ -21,7 +71,7 @@ const handleResponse = async (res) => {
 };
 
 export const api = {
-  // Authentication (Server-managed HttpOnly Cookies)
+  // Authentication (Dual-Authentication: Bearer Token + HttpOnly Cookies)
   auth: {
     login: async (email, password) => {
       const res = await fetch(`${API_BASE}/auth/login`, {
@@ -30,7 +80,11 @@ export const api = {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email, password })
       });
-      return handleResponse(res);
+      const data = await handleResponse(res);
+      if (data?.token) {
+        setStoredToken(data.token);
+      }
+      return data;
     },
 
     register: async (userData) => {
@@ -40,7 +94,11 @@ export const api = {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(userData)
       });
-      return handleResponse(res);
+      const data = await handleResponse(res);
+      if (data?.token) {
+        setStoredToken(data.token);
+      }
+      return data;
     },
 
     getMe: async () => {
@@ -52,12 +110,16 @@ export const api = {
     },
 
     logout: async () => {
-      const res = await fetch(`${API_BASE}/auth/logout`, {
-        ...defaultFetchOptions,
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' }
-      });
-      return handleResponse(res);
+      try {
+        const res = await fetch(`${API_BASE}/auth/logout`, {
+          ...defaultFetchOptions,
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' }
+        });
+        return await handleResponse(res);
+      } finally {
+        clearStoredToken();
+      }
     }
   },
 
@@ -78,8 +140,9 @@ export const api = {
       return handleResponse(res);
     },
 
-    getAvailableMentors: async () => {
-      const res = await fetch(`${API_BASE}/hod/available-mentors`, {
+    getAvailableMentors: async (params = {}) => {
+      const query = new URLSearchParams(params).toString();
+      const res = await fetch(`${API_BASE}/hod/available-mentors${query ? `?${query}` : ''}`, {
         ...defaultFetchOptions
       });
       return handleResponse(res);
@@ -185,7 +248,11 @@ export const api = {
       return handleResponse(res);
     },
 
-    getDownloadUrl: (id, preview = false) => `${API_BASE}/documents/${id}/download${preview ? '?preview=true' : ''}`,
+    getDownloadUrl: (id, preview = false) => {
+      const token = getStoredToken();
+      const tokenParam = token ? `&token=${encodeURIComponent(token)}` : '';
+      return `${API_BASE}/documents/${id}/download?${preview ? 'preview=true' : 'download=true'}${tokenParam}`;
+    },
 
     // Mentor Document Review Queue
     getMentorReviewQueue: async () => {
